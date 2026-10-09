@@ -1,0 +1,28 @@
+{
+  "name": "zen_desktop",
+  "version": "0.3.5",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "preview": "node scripts/preview.mjs",
+    "test": "node --test --experimental-test-isolation=none tests/*.test.mjs",
+    "build": "node scripts/build-electron.mjs",
+    "desktop": "electron ."
+  },
+  "keywords": [],
+  "author": "SSYNG (Gitee: ssy_kr)",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "description": "静池 · 轻交互禅意动态桌面壁纸",
+  "dependencies": {
+    "lunar-javascript": "^1.7.7",
+    "three": "0.186.1"
+  },
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "44.7.0"
+  },
+  "main": "electron/main.cjs"
+}

@@ -1,0 +1,15 @@
+node_modules/
+.npm-cache/
+vendor/
+dist/
+*.log
+.build/
+.electron-cache/
+native-bin/
+.env
+.env.*
+!.env.example
+*.user
+*.suo
+__pycache__/
+*.pyc
