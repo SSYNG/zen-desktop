@@ -1,12 +1,14 @@
-# 静池 · Zen Desktop
+# 禅意桌面 · Zen desktop
 
-留一方水，安放片刻。
+**简体中文** | [English](README.en.md)
+
+留片刻宁静。
 
 Windows 轻交互动态桌面壁纸，以禅意、放松和留白为方向。当前实现「赏鱼」：锦鲤缓游、甩尾转身、聚拢觅食，小雨落入水面，荷叶与荷花安静地浮在池边。画面实时绘制，不使用视频。
 
-![赏鱼场景预览](docs/preview-0.3.5.png)
+![赏鱼场景预览](docs/preview.png)
 
-当前版本 **0.3.5**。源码镜像：[GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop)。
+当前版本 **0.3.6**。源码镜像：[GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop)。
 
 ## 功能
 
@@ -32,7 +34,7 @@ Windows 轻交互动态桌面壁纸，以禅意、放松和留白为方向。当
 
 默认 16 尾锦鲤、三种配色、基准速度 0.8 倍，日历开启，小雨与声音关闭。设置自动保存到 %APPDATA%\ZenDesktop-Electron；自定义音乐保存在该用户数据目录的 IndexedDB 中。
 
-便携包约 **152 MiB**，解压后约 **371 MiB**。本地 dist/ 仅保留最新 0.3.5 与次新 0.3.4 的目录和 ZIP；构建产物不随源码提交，克隆仓库后需要自行构建。本轮未发布远程 Release 安装包。
+便携包约 **156 MiB**，解压后约 **371 MiB**。本地 dist/ 仅保留最新 0.3.6 与次新 0.3.5 的目录和 ZIP；构建产物不随源码提交，克隆仓库后需要自行构建。本轮未发布远程 Release 安装包。
 
 普通窗口预览（不挂载桌面、不改变图标）：
 
@@ -44,9 +46,9 @@ Windows 轻交互动态桌面壁纸，以禅意、放松和留白为方向。当
 
     npm ci
     npm run preview       # 浏览器预览：http://127.0.0.1:5173
-    npm run desktop       # 运行 Electron 桌面程序
     npm test              # 鱼群模拟与音乐生命周期测试
     npm run build         # 编译桌面桥并打包 Windows x64 便携程序
+    npm run desktop       # 桌面桥生成后，运行 Electron 桌面程序
 
 首次安装 / 构建会下载 Electron 运行时。网络环境需要时，可在执行 npm ci 前设置 ELECTRON_MIRROR；未设置时使用官方下载来源。请勿关闭证书校验。
 
@@ -54,8 +56,8 @@ Windows 轻交互动态桌面壁纸，以禅意、放松和留白为方向。当
 
 构建输出：
 
-    dist/v0.3.5/ZenDesktop-win32-x64/ZenDesktop.exe
-    dist/ZenDesktop-Electron-0.3.5-win-x64.zip
+    dist/v0.3.6/ZenDesktop-win32-x64/ZenDesktop.exe
+    dist/ZenDesktop-Electron-0.3.6-win-x64.zip
 
 重新打包同一版本前请先退出该版本，否则 Windows 可能锁定程序文件。浏览器预览仅验证画面与交互；桌面挂载、图标与托盘需在 Windows 程序中验证。
 

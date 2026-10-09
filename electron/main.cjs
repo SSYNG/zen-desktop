@@ -1,7 +1,7 @@
 const {app,BrowserWindow,Tray,Menu,ipcMain,screen,dialog}=require('electron');
 const {spawn}=require('node:child_process');const fs=require('node:fs');const path=require('node:path');const readline=require('node:readline');
 const preview=process.argv.includes('--preview'),smoke=process.argv.includes('--smoke');let wallpaper,settings,tray,bridge,config,exiting=false,mounted=false,heartbeat={},settingsReady,openTask,displayRefreshRate;
-app.setName('静池');app.setPath('userData',path.join(app.getPath('appData'),'ZenDesktop-Electron'));
+app.setName('禅意桌面');app.setPath('userData',path.join(app.getPath('appData'),'ZenDesktop-Electron'));
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 app.commandLine.appendSwitch('disable-features','CalculateNativeWinOcclusion');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -12,14 +12,14 @@ app.on('second-instance',(_event,args)=>{if(args.includes('--quit'))app.quit();e
 }
 function post(win,message){if(win&&!win.isDestroyed())win.webContents.send('zen-message',message);}
 function command(value){if(bridge?.stdin.writable)bridge.stdin.write(JSON.stringify(value)+'\n');}
-function fail(error){log(error.stack||String(error));dialog.showErrorBox('静池',String(error.message||error));app.quit();}
+function fail(error){log(error.stack||String(error));dialog.showErrorBox('禅意桌面',String(error.message||error));app.quit();}
 function secure(win){win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',(event,url)=>{if(!url.startsWith('file://'))event.preventDefault();});win.webContents.session.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));}
 function makeWindow(options){const win=new BrowserWindow({...options,icon:path.join(__dirname,'../assets/zen.ico'),backgroundColor:'#315b4d',webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,backgroundThrottling:false}});secure(win);return win;}
 async function start(){
  const bounds=screen.getPrimaryDisplay().bounds;
- wallpaper=makeWindow(preview?{x:80,y:80,width:1280,height:800,show:false,title:'静池 · 预览'}:{...bounds,show:false,frame:false,resizable:false,thickFrame:false,roundedCorners:false,hasShadow:false,skipTaskbar:true,focusable:false,title:'静池 · 桌面壁纸'});
+ wallpaper=makeWindow(preview?{x:80,y:80,width:1280,height:800,show:false,title:'禅意桌面 · 预览'}:{...bounds,show:false,frame:false,resizable:false,thickFrame:false,roundedCorners:false,hasShadow:false,skipTaskbar:true,focusable:false,title:'禅意桌面 · 桌面壁纸'});
  wallpaper.on('closed',()=>{if(!exiting)app.quit();});
- tray=new Tray(path.join(__dirname,'../assets/zen.ico'));tray.setToolTip('静池');tray.setContextMenu(Menu.buildFromTemplate([{label:'打开设置',click:openSettings},{label:'显示 / 隐藏桌面图标',click:()=>{config.icons=!config.icons;command({op:'icons',hidden:config.icons});post(wallpaper,{type:'icons',hidden:config.icons});}},{label:'重新挂载',click:()=>command({op:'mount'})},{label:'退出静池',click:()=>app.quit()}]));tray.on('double-click',openSettings);
+ tray=new Tray(path.join(__dirname,'../assets/zen.ico'));tray.setToolTip('禅意桌面');tray.setContextMenu(Menu.buildFromTemplate([{label:'打开设置',click:openSettings},{label:'显示 / 隐藏桌面图标',click:()=>{config.icons=!config.icons;command({op:'icons',hidden:config.icons});post(wallpaper,{type:'icons',hidden:config.icons});}},{label:'重新挂载',click:()=>command({op:'mount'})},{label:'退出禅意桌面',click:()=>app.quit()}]));tray.on('double-click',openSettings);
  ipcMain.on('zen-message',(event,message)=>{if(![wallpaper?.webContents,settings?.webContents].includes(event.sender))return;const fromSettings=event.sender===settings?.webContents;if(message.type!=='rendered')log({source:fromSettings?'settings':'wallpaper',...message});
   switch(message.type){
    case 'ready':if(fromSettings){post(settings,{type:'config',config});settingsReady?.();}else{config=message.config;if(preview)wallpaper.show();else{wallpaper.showInactive();startBridge();}if(smoke)runSmoke().catch(fail);}break;
@@ -39,7 +39,7 @@ function startBridge(){
  bridge=spawn(path.join(__dirname,'../native-bin/DesktopBridge.exe'),[hwnd,String(display.scaleFactor)],{windowsHide:true,stdio:['pipe','pipe','pipe']});
  bridge.on('error',fail);bridge.stderr.on('data',data=>log(String(data)));
  readline.createInterface({input:bridge.stdout}).on('line',line=>{try{const message=JSON.parse(line);if(message.type!=='desktopHover')log(message);
-  if(message.type==='mounted'){mounted=message.success;if(!mounted){dialog.showErrorBox('静池','无法挂载桌面。请退出其他壁纸程序后重试。');app.quit();}}
+  if(message.type==='mounted'){mounted=message.success;if(!mounted){dialog.showErrorBox('禅意桌面','无法挂载桌面。请退出其他壁纸程序后重试。');app.quit();}}
   else if(message.type==='ready'){displayRefreshRate=message.refreshRate;const interval=1000/Math.max(30,Math.min(360,displayRefreshRate||60));const pump=setInterval(()=>{if(!exiting)post(wallpaper,{type:'frameTick',interval});},Math.max(1,Math.round(interval)));wallpaper.once('closed',()=>clearInterval(pump));command({op:'config',icons:config.icons,calendar:config.calendar});post(wallpaper,{type:'doubleClickTime',value:message.doubleClickTime});}
   else if(message.type==='openSettings')openSettings();
   else if(message.type==='error')fail(new Error(message.message));
@@ -51,11 +51,11 @@ async function openSettings(){
  if(!config||exiting)return;
  if(openTask)return openTask;
  openTask=(async()=>{if(!settings||settings.isDestroyed()){
-   const area=screen.getPrimaryDisplay().workArea;settings=makeWindow({x:area.x+area.width-404,y:area.y+24,width:380,height:Math.min(700,area.height-48),show:false,frame:false,title:'静池 · 设置'});
+   const area=screen.getPrimaryDisplay().workArea;settings=makeWindow({x:area.x+area.width-404,y:area.y+24,width:380,height:Math.min(700,area.height-48),show:false,frame:false,title:'禅意桌面 · 设置'});
    settings.on('close',event=>{if(!exiting){event.preventDefault();post(settings,{type:'closeSettings'});}});
    const ready=new Promise(resolve=>settingsReady=resolve);await settings.loadFile(path.join(__dirname,'../web/index.html'),{query:{surface:'settings'}});await Promise.race([ready,new Promise((_,reject)=>setTimeout(()=>reject(new Error('设置页面加载超时')),15000))]);
   }post(settings,{type:'config',config});settings.show();if(!settings.isVisible()){await new Promise(resolve=>setTimeout(resolve,50));settings.show();}settings.focus();post(settings,{type:'openSettings'});
- })().catch(error=>{log(error.stack);dialog.showErrorBox('静池','设置无法打开：'+error.message);if(settings&&!settings.isDestroyed())settings.destroy();settings=null;}).finally(()=>openTask=null);
+ })().catch(error=>{log(error.stack);dialog.showErrorBox('禅意桌面','设置无法打开：'+error.message);if(settings&&!settings.isDestroyed())settings.destroy();settings=null;}).finally(()=>openTask=null);
  return openTask;
 }
 async function runSmoke(){

@@ -1,6 +1,6 @@
 {
-  "name": "zen_desktop",
-  "version": "0.3.5",
+  "name": "zen-desktop",
+  "version": "0.3.6",
   "directories": {
     "doc": "docs"
   },
@@ -13,7 +13,7 @@
   "keywords": [],
   "author": "SSYNG (Gitee: ssy_kr)",
   "license": "PolyForm-Noncommercial-1.0.0",
-  "description": "静池 · 轻交互禅意动态桌面壁纸",
+  "description": "禅意桌面 · Zen desktop · 轻交互动态桌面壁纸",
   "dependencies": {
     "lunar-javascript": "^1.7.7",
     "three": "0.186.1"
