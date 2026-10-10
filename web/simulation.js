@@ -1,4 +1,4 @@
-export const SPECIES = ['kohaku', 'yamabuki', 'sanke'];
+export const SPECIES = ['kohaku', 'yamabuki', 'sanke', 'benigoi'];
 export function angleDelta(a, b) { return Math.atan2(Math.sin(b-a), Math.cos(b-a)); }
 // The rendered nose is at u=0: +0.45 body lengths along the heading.
 export function fishMouth(f) { return {x:f.x+Math.cos(f.angle)*f.length*.45,y:f.y+Math.sin(f.angle)*f.length*.45}; }
@@ -77,19 +77,19 @@ export class PondSimulation {
         f.kickAge=0;f.kickDirection=Math.sign(delta);f.feedingKick=!!feedingTurn;f.kickRipple=false;f.feedTurnTarget=feedingTurn?target:null;f.kickCooldown=feedingTurn?1.1:3+this.random()*5;
       }
       let impulse=0,bow=0;f.kickBend=0;
-      const preload=f.feedingKick ? .24 : .18,release=f.feedingKick ? .30 : .24;
+      const preload=f.feedingKick ? .075 : .18,release=f.feedingKick ? .16 : .24;
       if(f.kickAge>=0){f.kickAge+=dt*f.agility;const a=f.kickAge;
-        if(a<preload){f.kickBend=f.kickDirection*Math.sin(a/preload*Math.PI/2);if(f.feedingKick)bow=f.kickBend*.27;}
-        else if(a<preload+release){const t=(a-preload)/release;f.kickBend=f.kickDirection*Math.cos(t*Math.PI);impulse=Math.sin(t*Math.PI);if(f.feedingKick)bow=f.kickDirection*.27*Math.cos(t*Math.PI/2);
+        if(a<preload){f.kickBend=f.kickDirection*Math.sin(a/preload*Math.PI/2);if(f.feedingKick)bow=f.kickBend*4.7;}
+        else if(a<preload+release){const t=(a-preload)/release;f.kickBend=f.kickDirection*Math.cos(t*Math.PI);impulse=Math.sin(t*Math.PI);if(f.feedingKick)bow=f.kickDirection*4.7*Math.cos(t*Math.PI/2);
           if(f.feedingKick&&!f.kickRipple){f.kickRipple=true;this.ripple(f.x-Math.cos(f.angle)*f.length*.3,f.y-Math.sin(f.angle)*f.length*.3,.6,1.65);}
         }
-        else if(a<preload+release+.3){const t=a-preload-release;f.kickBend=-f.kickDirection*.65*Math.exp(-t*8)*Math.cos(t*12);if(f.feedingKick)bow=-f.kickDirection*.06*Math.sin(t/.3*Math.PI)*Math.exp(-t*8); }
+        else if(a<preload+release+.3){const t=a-preload-release;f.kickBend=-f.kickDirection*.65*Math.exp(-t*8)*Math.cos(t*12);if(f.feedingKick)bow=-f.kickDirection*.28*Math.sin(t/.3*Math.PI)*Math.exp(-t*8); }
         else {f.kickAge=-1;f.feedingKick=false;}
       }
-      // Bend visibly before the heading changes; tail release supplies the angular impulse.
-      f.bodyBow+=(bow-f.bodyBow)*(1-Math.exp(-dt*28));
+      // Coil and turn overlap: no held pose between loading and tail release.
+      f.bodyBow+=(bow-f.bodyBow)*(1-Math.exp(-dt*90));
       const loading=f.feedingKick&&f.kickAge>=0&&f.kickAge<preload;
-      const maxTurn=(loading ? .06*f.agility : (closeFood?2.8:target?1.1:.45)*f.agility+impulse*(f.feedingKick?7:3.7))*dt;
+      const maxTurn=(loading ? (1.4+Math.abs(f.bodyBow)*.65)*f.agility : (closeFood?2.8:target?1.1:.45)*f.agility+impulse*(f.feedingKick?7:3.7))*dt;
       const turn=Math.max(-maxTurn,Math.min(maxTurn,delta));f.angle+=turn;f.turn+=(turn/dt-f.turn)*(1-Math.exp(-dt*7));
       const bendLimit=f.feedingKick ? .46 : .29;
       const desiredCurve=Math.max(-bendLimit,Math.min(bendLimit,f.turn*.065+f.kickBend*(f.feedingKick ? .36 : .23)));f.curvature+=(desiredCurve-f.curvature)*(1-Math.exp(-dt*19));
@@ -102,7 +102,7 @@ export class PondSimulation {
         // Brake before turning. Small backward sculling lets a pellet on the body reach the nose.
         const approach=Math.max(-.25,Math.min(1,(dist-f.length*.45)/(f.length*.65)));
         velocity*=alignment*alignment*approach;
-        if(loading)velocity*=.04;
+        if(loading)velocity*=.3;
       }
       f.velocity=velocity;f.x+=Math.cos(f.angle)*velocity*dt;f.y+=Math.sin(f.angle)*velocity*dt;
       if(!travelling){f.x=Math.max(4,Math.min(w-4,f.x));f.y=Math.max(4,Math.min(h-4,f.y));}

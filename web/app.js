@@ -1,4 +1,4 @@
-import {PondSimulation} from './simulation.js';
+import {PondSimulation,SPECIES} from './simulation.js';
 import {PondRenderer} from './renderer.js';
 import {calendarInfo} from './calendar.js';
 import {PondAudio} from './audio.js';
@@ -6,7 +6,7 @@ import {WaterSurface} from './water-surface.js';
 const controls=new URLSearchParams(location.search).get('surface')==='settings';
 document.body.classList.toggle('controls-surface',controls);
 const defaults={count:16,speed:.8,species:['kohaku','yamabuki','sanke'],rain:false,sound:false,volume:35,icons:true,calendar:true};
-function sanitize(value){const v={...defaults,...value};v.count=Math.max(6,Math.min(32,Number(v.count)||16));v.speed=Math.max(.4,Math.min(1.8,Number(v.speed)||.8));v.volume=Math.max(0,Math.min(100,Number(v.volume)||0));v.species=[...new Set((Array.isArray(v.species)?v.species:[]).filter(x=>defaults.species.includes(x)))];if(v.species.length<2)v.species=[...defaults.species];delete v.fps;v.sound=!!v.sound;v.icons=!!v.icons;v.calendar=v.calendar!==false;return v;}
+function sanitize(value){const v={...defaults,...value};v.count=Math.max(6,Math.min(32,Number(v.count)||16));v.speed=Math.max(.4,Math.min(1.8,Number(v.speed)||.8));v.volume=Math.max(0,Math.min(100,Number(v.volume)||0));v.species=[...new Set((Array.isArray(v.species)?v.species:[]).filter(x=>SPECIES.includes(x)))].slice(0,3);if(v.species.length<2)v.species=[...defaults.species];delete v.fps;v.sound=!!v.sound;v.icons=!!v.icons;v.calendar=v.calendar!==false;return v;}
 let stored;try{stored=JSON.parse(localStorage.getItem('zen-settings-v1'));}catch{}let config=sanitize(stored);
 const $=id=>document.getElementById(id),host=window.zenHost||window.chrome?.webview,native=!!host;const sim=new PondSimulation(innerWidth,innerHeight,config);const renderer=controls?null:new PondRenderer($('fish'));const audio=new PondAudio();let toastTimer;
 if(renderer)try{renderer.waterSurface=new WaterSurface($('water'),$('fish'),message=>{$('status').textContent=message;});}catch(error){$('water').style.display='none';document.body.dataset.waterEngine='canvas-fallback';$('status').textContent=error.message+'，使用兼容水面';}
@@ -15,7 +15,7 @@ function send(type,data={}){if(native)host.postMessage({type,...data});}
 function save(){try{localStorage.setItem('zen-settings-v1',JSON.stringify(config));}catch{toast('无法保存设置，请检查磁盘空间');}sim.configure(config);send('settings',{config});}
 function updateAudio(){if(!controls)audio.start(config).catch(e=>toast(e.message));}
 function refresh(){for(const id of ['count','speed','volume'])$(id).value=config[id];$('count-value').textContent=config.count+' 尾';$('speed-value').textContent=config.speed.toFixed(1)+' ×';$('volume-value').textContent=config.volume+' %';$('sound').checked=config.sound;$('icons').checked=config.icons;$('rain').checked=!!config.rain;$('show-calendar').checked=config.calendar;$('calendar').hidden=!config.calendar;document.body.classList.toggle('calendar-off',!config.calendar);document.querySelectorAll('[data-species]').forEach(b=>{const active=config.species.includes(b.dataset.species);b.classList.toggle('active',active);b.setAttribute('aria-pressed',active);});}
-for(const [name,color,id] of [['红白','#c27a62','kohaku'],['黄金','#d7bc78','yamabuki'],['三色','#bacaba','sanke']]){const b=document.createElement('button');b.dataset.species=id;b.innerHTML=`<i class="swatch" style="background:${color}"></i>${name}`;b.onclick=()=>{if(config.species.includes(id)){if(config.species.length===2){toast('保留至少两种鱼，水面更有层次');return;}config.species=config.species.filter(x=>x!==id);}else config.species.push(id);save();refresh();};$('species').append(b);}
+for(const [name,color,id] of [['红白','#c27a62','kohaku'],['黄金','#d7bc78','yamabuki'],['三色','#bacaba','sanke'],['纯红','#bd342e','benigoi']]){const b=document.createElement('button');b.dataset.species=id;b.innerHTML=`<i class="swatch" style="background:${color}"></i>${name}`;b.onclick=()=>{if(config.species.includes(id)){if(config.species.length===2){toast('保留至少两种鱼，水面更有层次');return;}config.species=config.species.filter(x=>x!==id);}else {if(config.species.length>=3){toast('最多选择三种鱼，请先取消一种');return;}config.species.push(id);}save();refresh();};$('species').append(b);}
 for(const [name,ready] of [['赏鱼',true],['听雨',false],['观海听涛',false],['林海雪原',false],['竹林幽径',false]]){const b=document.createElement('button');b.className='scene'+(ready?' active':'');b.disabled=!ready;b.innerHTML=name+(ready?'':'<small>待实现</small>');if(ready)b.setAttribute('aria-pressed','true');$('scenes').append(b);}
 for(const id of ['count','speed','volume'])$(id).oninput=()=>{config[id]=Number($(id).value);save();refresh();if(id==='volume')updateAudio();};
 $('show-calendar').onchange=()=>{config.calendar=$('show-calendar').checked;save();refresh();};
