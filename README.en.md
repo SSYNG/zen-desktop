@@ -8,12 +8,13 @@ An interactive Windows wallpaper focused on calm, space, and gentle motion. The 
 
 ![Koi pond preview](docs/preview.png)
 
-Current version: **0.3.6**. Source mirrors: [GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop).
+Current version: **0.3.7**. Source mirrors: [GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop).
 
 ## Features
 
 - Three koi varieties; select two or three, adjust the population from 6 to 32, and set a baseline speed. Individual fish have different speeds and occasionally dart or turn sharply.
-- Click empty desktop space to drop one food pellet. Nearby fish accelerate toward it and gradually disperse after it is consumed.
+- Click empty desktop space to drop one food pellet. Nearby fish accelerate toward it; a close lateral pellet triggers braking, a sharp tail-driven turn, and a larger wake. Only mouth contact consumes food, after which the school disperses.
+- Population changes bring new fish in from beyond the frame and let departing fish swim out, preserving existing fish.
 - Optional light rain with drops, subtle crowns, splashes, and expanding, overlapping water ripples.
 - Optional calendar with Gregorian and Chinese lunar dates, weekday, and a countdown to the next holiday or solar term.
 - Separate wallpaper and application settings, translucent panels, subtle hover movement, and smooth opening and closing transitions.
@@ -34,7 +35,7 @@ Windows 10 / 11 x64. Electron / Chromium is bundled, so WebView2 is not required
 
 Defaults: 16 fish, all three varieties, speed multiplier 0.8, calendar enabled, rain and sound disabled. Settings persist in %APPDATA%\ZenDesktop-Electron. Custom music is stored in IndexedDB within that user data directory.
 
-The portable archive is approximately **156 MiB**, or **371 MiB** extracted. Local dist/ retains only the latest 0.3.6 and previous 0.3.5 folders and ZIP files. Build artifacts are excluded from Git; build from source after cloning. No remote release binaries were published in this round.
+The portable archive is approximately **156 MiB**, or **371 MiB** extracted. Local dist/ retains only the latest 0.3.7 and previous 0.3.6 folders and ZIP files. Build artifacts are excluded from Git; build from source after cloning. No remote release binaries were published in this round.
 
 To preview in a normal window without attaching to the desktop or changing icons:
 
@@ -56,8 +57,8 @@ If your npm configuration disables installation scripts, run node node_modules/e
 
 Build outputs:
 
-    dist/v0.3.6/ZenDesktop-win32-x64/ZenDesktop.exe
-    dist/ZenDesktop-Electron-0.3.6-win-x64.zip
+    dist/v0.3.7/ZenDesktop-win32-x64/ZenDesktop.exe
+    dist/ZenDesktop-Electron-0.3.7-win-x64.zip
 
 Exit a running version before rebuilding the same version because Windows may lock its files. Browser previews cover visuals and interactions; desktop attachment, icons, and tray behavior require the Windows application.
 
@@ -86,7 +87,7 @@ Fish and water are drawn separately to avoid uploading a full-screen fish canvas
 - A normal exit shows desktop icons. Forced termination or a crash may prevent cleanup; restore icons through the desktop context menu: View → Show desktop icons.
 - Startup registration, fullscreen application pausing, sleep recovery, additional scenes, an installer, and long-duration power optimization are not implemented.
 
-Ten automated tests cover attraction and food consumption, dispersal, simulation stability, individual speeds, spontaneous turns, bounded rain, and custom audio cleanup. Actual desktop presentation needs manual verification; changing simulation state does not prove that the displayed image is updating.
+Fourteen automated tests cover attraction and food consumption, dispersal, simulation stability, individual speeds, spontaneous turns, bounded rain, custom audio cleanup, lateral feeding turns, mouth-only bites, population transitions, and rapid slider reversals. Actual desktop presentation needs manual verification; changing simulation state does not prove that the displayed image is updating.
 
 ## License and author
 
