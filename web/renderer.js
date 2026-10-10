@@ -1,5 +1,5 @@
 const TAU=Math.PI*2;
-export function centerline(f,u){return Math.sin(f.phase-u*3)*Math.pow(u,2)*f.length*.075-f.curvature*f.length*u*u;}
+export function centerline(f,u){return Math.sin(f.phase-u*3)*Math.pow(u,2)*f.length*.075-f.curvature*f.length*u*u-(f.bodyBow||0)*f.length*Math.sin(Math.PI*u)**2;}
 function rng(seed){return()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};}
 function skin(type){
   const c=document.createElement('canvas');c.width=256;c.height=96;const p=c.getContext('2d');
@@ -20,7 +20,7 @@ export class PondRenderer {
     if(shadow){c.fillStyle='#123e3425';this.fishPath(c,f);c.fill();c.restore();return;}
     // Translucent pectoral fins and forked tail follow the body wave.
     c.fillStyle=f.species==='yamabuki'?'#e6d29a6a':'#e5ecda6b';c.strokeStyle='#d7e5d94a';c.lineWidth=.5;
-    for(const side of [-1,1]){c.save();c.translate(l*.17,side*l*.063);c.rotate(side*(.3+Math.sin(f.phase+.6)*.13));c.beginPath();c.moveTo(0,0);c.bezierCurveTo(-l*.08,side*l*.15,-l*.24,side*l*.18,-l*.2,side*l*.07);c.quadraticCurveTo(-l*.1,side*l*.035,0,0);c.fill();c.stroke();for(let j=1;j<5;j++){c.beginPath();c.moveTo(0,0);c.lineTo(-l*(.09+j*.022),side*l*(.045+j*.021));c.stroke();}c.restore();}
+    for(const side of [-1,1]){c.save();c.translate(l*.17,centerline(f,.28)+side*l*.063);c.rotate(side*(.3+Math.sin(f.phase+.6)*.13));c.beginPath();c.moveTo(0,0);c.bezierCurveTo(-l*.08,side*l*.15,-l*.24,side*l*.18,-l*.2,side*l*.07);c.quadraticCurveTo(-l*.1,side*l*.035,0,0);c.fill();c.stroke();for(let j=1;j<5;j++){c.beginPath();c.moveTo(0,0);c.lineTo(-l*(.09+j*.022),side*l*(.045+j*.021));c.stroke();}c.restore();}
     const tailY=centerline(f,.97),tailSlope=(centerline(f,1)-centerline(f,.9))/(l*.1);
     c.save();c.translate(-l*.52,tailY);c.rotate(-Math.atan(tailSlope)+Math.sin(f.phase-3)*.28-f.kickBend*.35);c.beginPath();c.moveTo(l*.05,0);c.bezierCurveTo(-l*.02,-l*.06,-l*.22,-l*.16,-l*.28,-l*.12);c.quadraticCurveTo(-l*.2,0,-l*.14,0);c.quadraticCurveTo(-l*.2,0,-l*.28,l*.12);c.bezierCurveTo(-l*.22,l*.16,-l*.02,l*.06,l*.05,0);c.fill();c.stroke();for(let j=-3;j<=3;j++){c.beginPath();c.moveTo(0,0);c.lineTo(-l*.23,j*l*.035);c.stroke();}c.restore();
     c.save();this.fishPath(c,f);c.clip();
@@ -29,7 +29,7 @@ export class PondRenderer {
     c.restore();this.fishPath(c,f);c.strokeStyle='#d6e5cb45';c.lineWidth=.7;c.stroke();
     // Spine highlight, tiny eyes and a subdued gill line give restrained 2.5D volume.
     c.strokeStyle='#fffce52e';c.lineWidth=1.4;c.beginPath();for(let i=0;i<=22;i++){let u=.12+i/22*.78;let x=(.45-u)*l,y=centerline(f,u)-l*.012;if(i===0)c.moveTo(x,y);else c.lineTo(x,y);}c.stroke();
-    for(let side of [-1,1]){c.fillStyle='#243c32';c.beginPath();c.ellipse(l*.34,side*l*.045,l*.01,l*.014,0,0,TAU);c.fill();c.fillStyle='#f7f2d2a6';c.beginPath();c.arc(l*.344,side*l*.042,l*.0035,0,TAU);c.fill();c.strokeStyle='#6d807a66';c.beginPath();c.ellipse(l*.22,side*l*.044,l*.025,l*.033,side*.3,0,Math.PI);c.stroke();}
+    for(let side of [-1,1]){c.fillStyle='#243c32';c.beginPath();c.ellipse(l*.34,centerline(f,.11)+side*l*.045,l*.01,l*.014,0,0,TAU);c.fill();c.fillStyle='#f7f2d2a6';c.beginPath();c.arc(l*.344,centerline(f,.106)+side*l*.042,l*.0035,0,TAU);c.fill();c.strokeStyle='#6d807a66';c.beginPath();c.ellipse(l*.22,centerline(f,.23)+side*l*.044,l*.025,l*.033,side*.3,0,Math.PI);c.stroke();}
     c.restore();
   }
   render(sim,dt){const c=this.ctx,p=c,w=this.width,h=this.height;c.clearRect(0,0,w,h);

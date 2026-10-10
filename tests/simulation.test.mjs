@@ -1,3 +1,4 @@
+import {centerline} from '../web/renderer.js';
 import test from 'node:test';import assert from 'node:assert/strict';import {PondSimulation,angleDelta,fishMouth} from '../web/simulation.js';
 const config={count:16,speed:.8,species:['kohaku','yamabuki','sanke']};
 test('shortest turn across angle seam',()=>assert.ok(Math.abs(angleDelta(Math.PI-.1,-Math.PI+.1)-.2)<1e-9));
@@ -36,4 +37,17 @@ test('rapid slider reversals reuse departing fish without accumulating a hidden 
   const s=new PondSimulation(1000,700,{...config,count:16},()=>.5),original=[...s.fish];
   for(let i=0;i<40;i++){s.configure({...config,count:6});s.update(.03);s.configure({...config,count:16});s.update(.03);}
   assert.equal(s.fish.length,16);assert.ok(original.every(f=>s.fish.includes(f)));assert.equal(s.fish.filter(f=>f.lifecycle==='exiting').length,0);
+});
+
+test('close feeding bows the body before the heading turns, then releases and straightens',()=>{
+  for(const side of [-1,1]){const {s,f}=loneFish();s.feed(500,350+side*55);for(let i=0;i<12;i++)s.update(1/60);
+    assert.ok(Math.abs(angleDelta(0,f.angle))<.025,'no rigid spin while loading');
+    assert.ok(Math.abs(f.bodyBow)>.19,'body visibly bows before release');
+    assert.ok(Math.abs(centerline(f,.5))>f.length*.22,'mid-body bends, not just tail');
+    assert.ok(Math.abs(centerline(f,0))<1e-9,'mouth remains at rendered nose');
+    assert.ok(Math.hypot(f.x-500,f.y-350)<.1);
+    const bow=Math.abs(f.bodyBow);for(let i=0;i<24;i++)s.update(1/60);
+    assert.ok(Math.abs(angleDelta(0,f.angle))>1,'tail release turns the fish');assert.ok(Math.abs(f.bodyBow)<bow*.25,'body unfolds after propulsion');
+    for(let i=0;i<150;i++)s.update(1/60);assert.equal(s.eaten,1);assert.ok(Math.abs(f.bodyBow)<.005);
+  }
 });

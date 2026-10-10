@@ -13,7 +13,7 @@ export class PondSimulation {
   }
   createFish(initial) {
     const r=this.random,heading=r()*Math.PI*2;
-    const f={x:r()*this.width,y:r()*this.height,angle:heading,wander:heading,speed:16+r()*13,length:62+r()*29,phase:r()*Math.PI*2,turn:0,curvature:0,kickAge:-1,kickDirection:1,kickBend:0,kickCooldown:1+r()*5,agility:.75+r()*.5,dartAge:-1,nextDart:6+r()*40,dartTurn:0,dartRipple:false,burst:0,species:0,seed:r()*100,lifecycle:initial?'active':'entering',feedingKick:false};
+    const f={x:r()*this.width,y:r()*this.height,angle:heading,wander:heading,speed:16+r()*13,length:62+r()*29,phase:r()*Math.PI*2,turn:0,curvature:0,kickAge:-1,kickDirection:1,kickBend:0,kickCooldown:1+r()*5,agility:.75+r()*.5,dartAge:-1,nextDart:6+r()*40,dartTurn:0,dartRipple:false,burst:0,species:0,seed:r()*100,lifecycle:initial?'active':'entering',feedingKick:false,bodyBow:0};
     if(!initial){
       const edge=Math.floor(r()*4),padding=f.length*1.15;
       f.x=edge===0?-padding:edge===1?this.width+padding:this.width*(.15+r()*.7);
@@ -76,16 +76,20 @@ export class PondSimulation {
       if(f.kickAge<0&&(feedingTurn?f.feedTurnTarget!==target||f.kickCooldown<=0:f.kickCooldown<=0&&Math.abs(delta)>.9)){
         f.kickAge=0;f.kickDirection=Math.sign(delta);f.feedingKick=!!feedingTurn;f.kickRipple=false;f.feedTurnTarget=feedingTurn?target:null;f.kickCooldown=feedingTurn?1.1:3+this.random()*5;
       }
-      let impulse=0;f.kickBend=0;
+      let impulse=0,bow=0;f.kickBend=0;
+      const preload=f.feedingKick ? .24 : .18,release=f.feedingKick ? .30 : .24;
       if(f.kickAge>=0){f.kickAge+=dt*f.agility;const a=f.kickAge;
-        if(a<.18)f.kickBend=f.kickDirection*Math.sin(a/.18*Math.PI/2);
-        else if(a<.42){const t=(a-.18)/.24;f.kickBend=f.kickDirection*Math.cos(t*Math.PI);impulse=Math.sin(t*Math.PI);
+        if(a<preload){f.kickBend=f.kickDirection*Math.sin(a/preload*Math.PI/2);if(f.feedingKick)bow=f.kickBend*.27;}
+        else if(a<preload+release){const t=(a-preload)/release;f.kickBend=f.kickDirection*Math.cos(t*Math.PI);impulse=Math.sin(t*Math.PI);if(f.feedingKick)bow=f.kickDirection*.27*Math.cos(t*Math.PI/2);
           if(f.feedingKick&&!f.kickRipple){f.kickRipple=true;this.ripple(f.x-Math.cos(f.angle)*f.length*.3,f.y-Math.sin(f.angle)*f.length*.3,.6,1.65);}
         }
-        else if(a<.72)f.kickBend=-f.kickDirection*.65*Math.exp(-(a-.42)*8)*Math.cos((a-.42)*12);
+        else if(a<preload+release+.3){const t=a-preload-release;f.kickBend=-f.kickDirection*.65*Math.exp(-t*8)*Math.cos(t*12);if(f.feedingKick)bow=-f.kickDirection*.06*Math.sin(t/.3*Math.PI)*Math.exp(-t*8); }
         else {f.kickAge=-1;f.feedingKick=false;}
       }
-      const maxTurn=((closeFood?2.8:target?1.1:.45)*f.agility+impulse*(f.feedingKick?7:3.7))*dt;
+      // Bend visibly before the heading changes; tail release supplies the angular impulse.
+      f.bodyBow+=(bow-f.bodyBow)*(1-Math.exp(-dt*28));
+      const loading=f.feedingKick&&f.kickAge>=0&&f.kickAge<preload;
+      const maxTurn=(loading ? .06*f.agility : (closeFood?2.8:target?1.1:.45)*f.agility+impulse*(f.feedingKick?7:3.7))*dt;
       const turn=Math.max(-maxTurn,Math.min(maxTurn,delta));f.angle+=turn;f.turn+=(turn/dt-f.turn)*(1-Math.exp(-dt*7));
       const bendLimit=f.feedingKick ? .46 : .29;
       const desiredCurve=Math.max(-bendLimit,Math.min(bendLimit,f.turn*.065+f.kickBend*(f.feedingKick ? .36 : .23)));f.curvature+=(desiredCurve-f.curvature)*(1-Math.exp(-dt*19));
@@ -98,7 +102,7 @@ export class PondSimulation {
         // Brake before turning. Small backward sculling lets a pellet on the body reach the nose.
         const approach=Math.max(-.25,Math.min(1,(dist-f.length*.45)/(f.length*.65)));
         velocity*=alignment*alignment*approach;
-        if(f.feedingKick&&f.kickAge<.18)velocity*=.08;
+        if(loading)velocity*=.04;
       }
       f.velocity=velocity;f.x+=Math.cos(f.angle)*velocity*dt;f.y+=Math.sin(f.angle)*velocity*dt;
       if(!travelling){f.x=Math.max(4,Math.min(w-4,f.x));f.y=Math.max(4,Math.min(h-4,f.y));}
