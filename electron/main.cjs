@@ -59,11 +59,26 @@ async function openSettings(){
  return openTask;
 }
 async function runSmoke(){
- await new Promise(resolve=>setTimeout(resolve,3000));await openSettings();await new Promise(resolve=>setTimeout(resolve,400));const separate=!!settings?.isVisible(),before=heartbeat.frames;const beforeFish=await wallpaper.webContents.executeJavaScript('window.zenDiagnostics()');
+ const initial={...config,species:[...config.species]};
+ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const diagnose=()=>wallpaper.webContents.executeJavaScript('window.zenDiagnostics()');
+ const select=selector=>settings.webContents.executeJavaScript(`document.querySelector(${JSON.stringify(selector)}).click()`);
+ await pause(3000);await openSettings();await pause(400);const separate=!!settings?.isVisible();await select('[data-scene="pond"]');await pause(400);const before=heartbeat.frames,beforeFish=await diagnose();
  await settings.webContents.executeJavaScript("document.getElementById('close').click()");await new Promise(resolve=>setTimeout(resolve,8000));
  const afterFish=await wallpaper.webContents.executeJavaScript('window.zenDiagnostics()');
  post(wallpaper,{type:'feed',x:.05,y:.05,normalized:true});await new Promise(resolve=>setTimeout(resolve,100));
  const fed=await wallpaper.webContents.executeJavaScript('window.zenDiagnostics()');const food=fed.foodState.at(-1);
- const result={displayRefreshRate,gpu:app.getGPUFeatureStatus(),profile:afterFish.profile,viewport:afterFish.viewport,feedPositionCorrect:!!food&&Math.abs(food.x-fed.viewport.width*.05)<.1&&Math.abs(food.y-fed.viewport.height*.05)<.1,fishMoving:afterFish.fishState.some((f,i)=>Math.hypot(f.x-beforeFish.fishState[i].x,f.y-beforeFish.fishState[i].y)>2),simulationAdvancing:afterFish.time>beforeFish.time,pageVisibility:heartbeat.pageVisibility,mounted:preview?'preview':mounted,separateSettings:separate,settingsClosed:!settings.isVisible(),wallpaperVisible:wallpaper.isVisible(),engine:heartbeat.engine,rendering:heartbeat.frames>before};log(result);fs.writeFileSync(path.join(app.getPath('userData'),'smoke-result.json'),JSON.stringify(result,null,2));app.quit();
+ const result={displayRefreshRate,gpu:app.getGPUFeatureStatus(),profile:afterFish.profile,viewport:afterFish.viewport,feedPositionCorrect:!!food&&Math.abs(food.x-fed.viewport.width*.05)<.1&&Math.abs(food.y-fed.viewport.height*.05)<.1,fishMoving:afterFish.fishState.some((f,i)=>Math.hypot(f.x-beforeFish.fishState[i].x,f.y-beforeFish.fishState[i].y)>2),simulationAdvancing:afterFish.time>beforeFish.time,pageVisibility:heartbeat.pageVisibility,mounted:preview?'preview':mounted,separateSettings:separate,settingsClosed:!settings.isVisible(),wallpaperVisible:wallpaper.isVisible(),engine:heartbeat.engine,rendering:heartbeat.frames>before};
+ try{
+  await openSettings();await pause(400);await select('[data-scene="clouds"]');await select('#cloud-fixed');await select('[data-cloud-time="06:20"]');
+  const deadline=Date.now()+30000;let cloud;do{await pause(250);cloud=await diagnose();}while(!cloud.cloud?.ready&&cloud.scene==='clouds'&&Date.now()<deadline);
+  if(!cloud.cloud?.ready)throw Error('云海未完成初始化');await select('#close');await pause(4000);const cloudBefore=await diagnose();const imageBefore=await wallpaper.webContents.capturePage();await pause(2000);const cloudAfter=await diagnose();const imageAfter=await wallpaper.webContents.capturePage();
+  result.cloud={ready:cloudAfter.cloud.ready,fixedTimeCorrect:cloudAfter.cloud.minutes===380,animationAdvancing:cloudAfter.cloud.frames>cloudBefore.cloud.frames&&cloudAfter.cloud.elapsed>cloudBefore.cloud.elapsed,pixelsChanging:!imageBefore.toPNG().equals(imageAfter.toPNG()),settingsClosed:!settings.isVisible(),profile:cloudAfter.profile,gpuMs:cloudAfter.cloud.gpuMs,renderSize:cloudAfter.cloud.renderSize};fs.writeFileSync(path.join(app.getPath('userData'),'cloud-smoke.png'),imageAfter.toPNG());
+  await openSettings();await pause(400);await select('#cloud-realtime');await pause(400);const realtime=await diagnose(),now=new Date();result.cloud.realtimeCorrect=Math.abs(realtime.cloud.minutes-(now.getHours()*60+now.getMinutes()+now.getSeconds()/60))<.1;
+  await select('[data-scene="pond"]');await select('#close');await pause(1000);const resumed=await diagnose();result.pondResumed=resumed.scene==='pond'&&resumed.time>afterFish.time;
+ }catch(error){result.cloudError=error.message;}finally{
+  config=initial;post(wallpaper,{type:'config',config});post(settings,{type:'config',config});await wallpaper.webContents.executeJavaScript(`localStorage.setItem('zen-settings-v1',${JSON.stringify(JSON.stringify(initial))})`);await pause(100);
+ }
+ log(result);fs.writeFileSync(path.join(app.getPath('userData'),'smoke-result.json'),JSON.stringify(result,null,2));app.quit();
 }
 app.on('window-all-closed',()=>{});app.on('before-quit',event=>{if(exiting)return;exiting=true;if(bridge?.stdin.writable){event.preventDefault();command({op:'quit'});bridge.once('exit',()=>app.quit());setTimeout(()=>app.quit(),3000);}tray?.destroy();});

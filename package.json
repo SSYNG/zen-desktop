@@ -1,12 +1,13 @@
 {
   "name": "zen-desktop",
-  "version": "0.3.9",
+  "version": "0.4.0",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
     "preview": "node scripts/preview.mjs",
     "test": "node --test --experimental-test-isolation=none tests/*.test.mjs",
+    "build:clouds": "node scripts/build-clouds.mjs",
     "build": "node scripts/build-electron.mjs",
     "desktop": "electron ."
   },
@@ -15,14 +16,19 @@
   "license": "PolyForm-Noncommercial-1.0.0",
   "description": "禅意桌面 · Zen desktop · 轻交互动态桌面壁纸",
   "dependencies": {
+    "@takram/three-atmosphere": "0.19.1",
+    "@takram/three-clouds": "0.7.6",
+    "@takram/three-geospatial": "0.9.1",
     "lunar-javascript": "^1.7.7",
+    "postprocessing": "6.39.5",
     "three": "0.186.1"
   },
   "type": "module",
   "private": true,
   "devDependencies": {
     "@electron/packager": "20.3.0",
-    "electron": "44.7.0"
+    "electron": "44.7.0",
+    "esbuild": "0.28.2"
   },
   "main": "electron/main.cjs"
 }

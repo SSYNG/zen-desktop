@@ -4,11 +4,11 @@
 
 A quiet moment on your desktop.
 
-An interactive Windows wallpaper focused on calm, space, and gentle motion. The first scene is a top-down koi pond: fish swim, turn, gather around food, and disperse. Light rain creates ripples around floating lotus leaves and flowers. Everything is rendered in real time; this is not a video wallpaper.
+An interactive Windows wallpaper focused on calm, space, and gentle motion. Scenes include a koi pond and an experimental **Cloud Sea Beta**. In the top-down pond, fish swim, turn, gather around food, and disperse. Light rain creates ripples around floating lotus leaves and flowers. Everything is rendered in real time; this is not a video wallpaper.
 
 ![Koi pond preview](docs/preview.png)
 
-Current version: **0.3.9**. Source mirrors: [GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop).
+Current version: **0.4.0**. Source mirrors: [GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop).
 
 ## Features
 
@@ -16,6 +16,7 @@ Current version: **0.3.9**. Source mirrors: [GitHub](https://github.com/SSYNG/ze
 - Click empty desktop space to drop one food pellet. Nearby fish accelerate toward it; a close lateral pellet triggers braking and a near-circular body coil overlapping a continuous tail-driven turn, and a larger wake. Only mouth contact consumes food, after which the school disperses.
 - Population changes bring new fish in from beyond the frame and let departing fish swim out, preserving existing fish.
 - Optional light rain with drops, subtle crowns, splashes, and expanding, overlapping water ripples.
+- **Cloud Sea Beta**: real-time volumetric clouds and procedural mountains. Follow the local clock or select a fixed time with dawn, noon, sunset, and night presets. Fixed time freezes lighting while clouds keep moving.
 - Optional calendar with Gregorian and Chinese lunar dates, weekday, and a countdown to the next holiday or solar term.
 - Separate wallpaper and application settings, translucent panels, subtle hover movement, and smooth opening and closing transitions.
 - Custom local music with playback and volume controls. The application stays silent until music is selected.
@@ -35,7 +36,7 @@ Windows 10 / 11 x64. Electron / Chromium is bundled, so WebView2 is not required
 
 Defaults: 16 fish, the three original varieties, speed multiplier 0.8, calendar enabled, rain and sound disabled. Settings persist in %APPDATA%\ZenDesktop-Electron. Custom music is stored in IndexedDB within that user data directory.
 
-The portable archive is approximately **156 MiB**, or **371 MiB** extracted. Local dist/ retains only the latest 0.3.9 and previous 0.3.8 folders and ZIP files. Build artifacts are excluded from Git; build from source after cloning. No remote release binaries were published in this round.
+The portable archive is approximately **166 MiB**, or **383 MiB** extracted. Local dist/ retains only the latest 0.4.0 and previous 0.3.9 folders and ZIP files. Build artifacts are excluded from Git; build from source after cloning. No remote release binaries were published in this round.
 
 To preview in a normal window without attaching to the desktop or changing icons:
 
@@ -47,7 +48,8 @@ Windows, Node.js **22.12 or later**, npm, and the Windows .NET Framework C# comp
 
     npm ci
     npm run preview       # Browser preview: http://127.0.0.1:5173
-    npm test              # Simulation and audio lifecycle tests
+    npm run build:clouds  # Rebuild offline cloud engine and noise assets
+    npm test              # Simulation, cloud clocks, and audio lifecycle tests
     npm run build         # Compile the bridge and package Windows x64
     npm run desktop       # Run Electron after the bridge has been generated
 
@@ -57,8 +59,8 @@ If your npm configuration disables installation scripts, run node node_modules/e
 
 Build outputs:
 
-    dist/v0.3.9/ZenDesktop-win32-x64/ZenDesktop.exe
-    dist/ZenDesktop-Electron-0.3.9-win-x64.zip
+    dist/v0.4.0/ZenDesktop-win32-x64/ZenDesktop.exe
+    dist/ZenDesktop-Electron-0.4.0-win-x64.zip
 
 Exit a running version before rebuilding the same version because Windows may lock its files. Browser previews cover visuals and interactions; desktop attachment, icons, and tray behavior require the Windows application.
 
@@ -70,16 +72,21 @@ Exit a running version before rebuilding the same version because Windows may lo
 | native/ | C# / Win32 desktop attachment, pointer mapping, icon control |
 | web/simulation.js | Steering, separation, feeding, darts, and sharp turns |
 | web/renderer.js | Independent Canvas fish, procedural skins, and rain drops |
+| web/cloud-sea.js | Takram clouds, atmosphere, mountains, and daily lighting |
+| web/cloud-time.js | Local / fixed clock and continuous time-of-day changes |
+| web/cloud-assets/ | Local noise and atmosphere LUTs; no runtime network dependency |
 | web/water-surface.js | Three.js GPU waves and transparent surface layer |
 | web/ | Settings, lunar calendar, audio, and flat watercolor background |
 | assets/ | Windows and PNG icons |
 | scripts/ | Packaging, preview server, and icon generation |
-| tests/ | Simulation and audio tests |
+| tests/ | Fish, cloud clock, and audio tests |
 
 Fish and water are drawn separately to avoid uploading a full-screen fish canvas to WebGL every frame. Lotus leaves and flowers are fixed in the background. Fish use procedural 2.5D body deformation rather than complete 3D models. Unsupported water rendering falls back to Canvas ripples.
 
 ## Compatibility and current limits
 
+- Cloud Sea is Beta: cloud detail, mountains, and performance remain under development. It requires WebGL 2 and falls back to the pond on resource or graphics-context errors. Internal rendering is capped at 1440 pixels wide; achieved FPS depends on GPU performance.
+- Local-clock mode assumes approximately 06:00 sunrise and 18:00 sunset. No location access or geographic / seasonal astronomical calculation is used.
 - Only the primary monitor is supported; per-monitor wallpaper settings are not implemented.
 - Desktop organizers can cover the wallpaper layer. Exiting Tencent Desktop Organizer restored wallpaper visibility during testing.
 - Avoid running multiple historical versions together. Use the tray's reattach command after restarting Explorer.
@@ -87,7 +94,7 @@ Fish and water are drawn separately to avoid uploading a full-screen fish canvas
 - A normal exit shows desktop icons. Forced termination or a crash may prevent cleanup; restore icons through the desktop context menu: View → Show desktop icons.
 - Startup registration, fullscreen application pausing, sleep recovery, additional scenes, an installer, and long-duration power optimization are not implemented.
 
-Sixteen automated tests cover attraction and food consumption, dispersal, simulation stability, individual speeds, spontaneous turns, bounded rain, custom audio cleanup, lateral feeding turns, mouth-only bites, population transitions, and rapid slider reversals. Actual desktop presentation needs manual verification; changing simulation state does not prove that the displayed image is updating.
+Nineteen automated tests cover cloud clocks and settings migration, alongside attraction and food consumption, dispersal, simulation stability, individual speeds, spontaneous turns, bounded rain, custom audio cleanup, lateral feeding turns, mouth-only bites, population transitions, and rapid slider reversals. Actual desktop presentation needs manual verification; changing simulation state does not prove that the displayed image is updating.
 
 ## License and author
 

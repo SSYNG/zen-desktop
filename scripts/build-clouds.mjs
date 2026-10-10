@@ -1,0 +1,13 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {build} from 'esbuild';
+import {cloudDither} from './cloud-noise.mjs';
+const root=path.resolve(import.meta.dirname,'..'),assets=path.join(root,'web/cloud-assets');
+await fs.mkdir(assets,{recursive:true});
+await fs.mkdir(path.join(root,'.build'),{recursive:true});
+for(const name of ['local_weather.png','shape.bin','shape_detail.bin','turbulence.png'])await fs.copyFile(path.join(root,'node_modules/@takram/three-clouds/assets',name),path.join(assets,name));
+for(const name of ['irradiance.bin','scattering.bin','transmittance.bin'])await fs.copyFile(path.join(root,'node_modules/@takram/three-atmosphere/assets',name),path.join(assets,name));
+await fs.writeFile(path.join(assets,'stbn.bin'),cloudDither());
+const result=await build({stdin:{contents:`export {CloudsEffect} from '@takram/three-clouds';export {AerialPerspectiveEffect,PrecomputedTexturesLoader} from '@takram/three-atmosphere';export {Ellipsoid,Geodetic,STBNLoader} from '@takram/three-geospatial';export {EffectComposer,RenderPass,NormalPass,EffectPass,Effect,BlendFunction,ToneMappingEffect,ToneMappingMode} from 'postprocessing';`,resolveDir:root},bundle:true,format:'esm',minify:true,legalComments:'eof',metafile:true,outfile:path.join(root,'web/lib/cloud-engine.js'),plugins:[{name:'shared-three',setup(b){b.onResolve({filter:/^three$/},()=>({path:'./three.module.js',external:true}));}}]});
+console.log('Offline cloud engine: '+(await fs.stat(path.join(root,'web/lib/cloud-engine.js'))).size+' bytes');
+await fs.writeFile(path.join(root,'.build/cloud-bundle-inputs.json'),JSON.stringify(Object.keys(result.metafile.inputs),null,2));

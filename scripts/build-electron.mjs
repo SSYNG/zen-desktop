@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';import path from 'node:path';import {execFileSync} from 'node:child_process';import {packager} from '@electron/packager';
 const root=path.resolve('.'),stage=path.join(root,'.build','electron-app');
+await import('./build-clouds.mjs');
 await fs.mkdir(path.join(root,'native-bin'),{recursive:true});
 execFileSync(path.join(process.env.WINDIR,'Microsoft.NET','Framework64','v4.0.30319','csc.exe'),['/nologo','/codepage:65001','/target:exe','/platform:x64','/optimize+',`/win32manifest:${path.join(root,'native','app.manifest')}`,`/out:${path.join(root,'native-bin','DesktopBridge.exe')}`,...['System','System.Core','System.Drawing','System.Windows.Forms','System.Web.Extensions'].map(x=>`/reference:${x}.dll`),...['Bridge.cs','Desktop.cs','Interop.cs'].map(x=>path.join(root,'native',x))],{stdio:'inherit'});
 await fs.mkdir(stage,{recursive:true});for(const folder of ['electron','web','assets','native-bin','docs'])await fs.cp(path.join(root,folder),path.join(stage,folder),{recursive:true,force:true});
