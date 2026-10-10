@@ -38,7 +38,8 @@ export class CloudSeaRenderer {
       {channel:'a',altitude:900,height:1300,densityScale:.0006,shapeAmount:.35,shapeDetailAmount:.7,coverageFilterWidth:1,shapeAlteringBias:.6,densityProfile:{constantTerm:.35,linearTerm:0}},
       {channel:'b',altitude:7300,height:0,densityScale:.002,shapeAmount:.4,shapeDetailAmount:0}
     ]);
-    this.clouds.shapeVelocity.set(12,0,3);this.clouds.shapeDetailVelocity.set(20,1,7);this.clouds.localWeatherVelocity.set(.000007,.000002);this.clouds.turbulenceDisplacement=200;
+    // The library advances texture coordinates, not metres: convert world wind.
+    this.clouds.shapeVelocity.set(3,0,.75).multiply(this.clouds.shapeRepeat);this.clouds.shapeDetailVelocity.set(4,.15,1).multiply(this.clouds.shapeDetailRepeat);this.clouds.localWeatherVelocity.set(.000007,.000002);this.clouds.turbulenceDisplacement=200;
     this.atmosphere=new AerialPerspectiveEffect(this.camera,{sky:true,sunLight:true,skyLight:true,ground:false});this.atmosphere.worldToECEFMatrix.copy(this.worldToECEF);
     this.nightColour=new NightColour();this.tone=new ToneMappingEffect({mode:ToneMappingMode.ACES_FILMIC});
     this.composer=new EffectComposer(this.renderer,{frameBufferType:THREE.HalfFloatType,multisampling:0});this.composer.addPass(new RenderPass(this.scene,this.camera));this.normalPass=new NormalPass(this.scene,this.camera);this.composer.addPass(this.normalPass);this.atmosphere.normalBuffer=this.normalPass.texture;

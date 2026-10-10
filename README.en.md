@@ -8,7 +8,9 @@ An interactive Windows wallpaper focused on calm, space, and gentle motion. Scen
 
 ![Koi pond preview](docs/preview.png)
 
-Current version: **0.4.0**. Source mirrors: [GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop).
+Current version: **0.4.1**. Source mirrors: [GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop).
+
+0.4.1 corrects the cloud wind unit conversion, preventing rapid shape reshuffling. A separate [cloud video experiment](experiments/cloud-video/README.md) explores video with code-driven lighting; it is not included in the release.
 
 ## Features
 
@@ -36,7 +38,7 @@ Windows 10 / 11 x64. Electron / Chromium is bundled, so WebView2 is not required
 
 Defaults: 16 fish, the three original varieties, speed multiplier 0.8, calendar enabled, rain and sound disabled. Settings persist in %APPDATA%\ZenDesktop-Electron. Custom music is stored in IndexedDB within that user data directory.
 
-The portable archive is approximately **166 MiB**, or **383 MiB** extracted. Local dist/ retains only the latest 0.4.0 and previous 0.3.9 folders and ZIP files. Build artifacts are excluded from Git; build from source after cloning. No remote release binaries were published in this round.
+The portable archive is approximately **166 MiB**, or **383 MiB** extracted. Local dist/ retains only the latest 0.4.1 and previous 0.4.0 folders and ZIP files. Build artifacts are excluded from Git; build from source after cloning. No remote release binaries were published in this round.
 
 To preview in a normal window without attaching to the desktop or changing icons:
 
@@ -59,8 +61,8 @@ If your npm configuration disables installation scripts, run node node_modules/e
 
 Build outputs:
 
-    dist/v0.4.0/ZenDesktop-win32-x64/ZenDesktop.exe
-    dist/ZenDesktop-Electron-0.4.0-win-x64.zip
+    dist/v0.4.1/ZenDesktop-win32-x64/ZenDesktop.exe
+    dist/ZenDesktop-Electron-0.4.1-win-x64.zip
 
 Exit a running version before rebuilding the same version because Windows may lock its files. Browser previews cover visuals and interactions; desktop attachment, icons, and tray behavior require the Windows application.
 

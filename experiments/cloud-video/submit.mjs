@@ -1,0 +1,15 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {randomUUID} from 'node:crypto';
+const reference=process.argv[2];
+if(!reference)throw Error('Usage: node experiments/cloud-video/submit.mjs <reference-image.png>');
+const base='http://127.0.0.1:8188',file=new URL('./cloud-sea-h3.api.json',import.meta.url);
+const graph=JSON.parse(await fs.readFile(file,'utf8'));
+const form=new FormData();form.set('image',new Blob([await fs.readFile(reference)],{type:'image/png'}),'ZenDesktop-cloud-sea-reference.png');form.set('type','input');form.set('subfolder','zen-desktop');form.set('overwrite','false');
+const upload=await fetch(base+'/upload/image',{method:'POST',body:form,signal:AbortSignal.timeout(60000)});
+if(!upload.ok)throw Error('Reference upload failed: '+upload.status+' '+await upload.text());
+const input=await upload.json();graph['5'].inputs.image=[input.subfolder,input.name].filter(Boolean).join('/');
+const response=await fetch(base+'/prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:graph,client_id:randomUUID()}),signal:AbortSignal.timeout(30000)});
+const result=await response.json();if(!response.ok||result.error||!result.prompt_id)throw Error(JSON.stringify(result));
+const output=path.resolve('.build/cloud-video-submission.json');await fs.mkdir(path.dirname(output),{recursive:true});await fs.writeFile(output,JSON.stringify({submittedAt:new Date().toISOString(),server:base,...result,reference:graph['5'].inputs.image,baseSize:[1344,768],outputSize:[1920,1080],frames:124,fps:24,steps:8,outputPrefix:'video/ZenDesktop_cloudsea_H3',prompt:graph},null,2));
+console.log(JSON.stringify({prompt_id:result.prompt_id,queueNumber:result.number,record:output,outputDirectory:'D:/ComfyUI/output/video',progressPolling:false},null,2));

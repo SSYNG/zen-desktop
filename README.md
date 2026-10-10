@@ -8,7 +8,9 @@ Windows 轻交互动态桌面壁纸，以禅意、放松和留白为方向。目
 
 ![赏鱼场景预览](docs/preview.png)
 
-当前版本 **0.4.0**。源码镜像：[GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop)。
+当前版本 **0.4.1**。源码镜像：[GitHub](https://github.com/SSYNG/zen-desktop) · [Gitee](https://gitee.com/ssy_kr/zen-desktop)。
+
+0.4.1 修复云海风速的单位换算，避免云体高频重排与抽动。视频与代码结合的独立素材实验见 [云海视频实验](experiments/cloud-video/README.md)，暂未接入发布包。
 
 ## 功能
 
@@ -36,7 +38,7 @@ Windows 轻交互动态桌面壁纸，以禅意、放松和留白为方向。目
 
 默认 16 尾锦鲤、三种配色、基准速度 0.8 倍，日历开启，小雨与声音关闭。设置自动保存到 %APPDATA%\ZenDesktop-Electron；自定义音乐保存在该用户数据目录的 IndexedDB 中。
 
-便携包约 **166 MiB**，解压后约 **383 MiB**。本地 dist/ 仅保留最新 0.4.0 与次新 0.3.9 的目录和 ZIP；构建产物不随源码提交，克隆仓库后需要自行构建。本轮未发布远程 Release 安装包。
+便携包约 **166 MiB**，解压后约 **383 MiB**。本地 dist/ 仅保留最新 0.4.1 与次新 0.4.0 的目录和 ZIP；构建产物不随源码提交，克隆仓库后需要自行构建。本轮未发布远程 Release 安装包。
 
 普通窗口预览（不挂载桌面、不改变图标）：
 
@@ -59,8 +61,8 @@ Windows 轻交互动态桌面壁纸，以禅意、放松和留白为方向。目
 
 构建输出：
 
-    dist/v0.4.0/ZenDesktop-win32-x64/ZenDesktop.exe
-    dist/ZenDesktop-Electron-0.4.0-win-x64.zip
+    dist/v0.4.1/ZenDesktop-win32-x64/ZenDesktop.exe
+    dist/ZenDesktop-Electron-0.4.1-win-x64.zip
 
 重新打包同一版本前请先退出该版本，否则 Windows 可能锁定程序文件。浏览器预览仅验证画面与交互；桌面挂载、图标与托盘需在 Windows 程序中验证。
 
