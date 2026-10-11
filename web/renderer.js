@@ -1,12 +1,9 @@
 const TAU=Math.PI*2;
-// An arc-length skeleton can coil into a C; moving only y leaves a rigid horizontal spine.
+// Head stays anchored; a small travelling wave bends the rear body and tail.
 export function fishPose(f,u){
-  const k=f.bodyBow||0,l=f.length,blend=Math.max(0,1-Math.abs(k)/4.7);
-  const x=Math.abs(k)<1e-5?(.45-u)*l:.45*l-l*Math.sin(k*u)/k;
-  const arc=Math.abs(k)<1e-5?0:-l*(1-Math.cos(k*u))/k;
   const wave=Math.sin(f.phase-u*3)*u*u*.075-f.curvature*u*u;
   const derivative=(Math.sin(f.phase-u*3)*2*u-Math.cos(f.phase-u*3)*3*u*u)*.075-2*f.curvature*u;
-  return {x,y:arc+wave*l*blend,angle:Math.atan2(Math.sin(k*u)-derivative*blend,Math.cos(k*u))};
+  return {x:(.45-u)*f.length,y:wave*f.length,angle:Math.atan2(-derivative,1)};
 }
 export function centerline(f,u){return fishPose(f,u).y;}
 function rng(seed){return()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};}
@@ -31,7 +28,7 @@ export class PondRenderer {
     c.fillStyle=f.species==='benigoi'?'#d075586b':f.species==='yamabuki'?'#e6d29a6a':'#e5ecda6b';c.strokeStyle=f.species==='benigoi'?'#d6947350':'#d7e5d94a';c.lineWidth=.5;
     for(const side of [-1,1]){const p=fishPose(f,.28);c.save();c.translate(p.x-Math.sin(p.angle)*side*l*.063,p.y+Math.cos(p.angle)*side*l*.063);c.rotate(p.angle+side*(.3+Math.sin(f.phase+.6)*.13));c.beginPath();c.moveTo(0,0);c.bezierCurveTo(-l*.08,side*l*.15,-l*.24,side*l*.18,-l*.2,side*l*.07);c.quadraticCurveTo(-l*.1,side*l*.035,0,0);c.fill();c.stroke();for(let j=1;j<5;j++){c.beginPath();c.moveTo(0,0);c.lineTo(-l*(.09+j*.022),side*l*(.045+j*.021));c.stroke();}c.restore();}
     const tail=fishPose(f,.97);
-    c.save();c.translate(tail.x,tail.y);c.rotate(tail.angle+Math.sin(f.phase-3)*.28-f.kickBend*.35);c.beginPath();c.moveTo(l*.05,0);c.bezierCurveTo(-l*.02,-l*.06,-l*.22,-l*.16,-l*.28,-l*.12);c.quadraticCurveTo(-l*.2,0,-l*.14,0);c.quadraticCurveTo(-l*.2,0,-l*.28,l*.12);c.bezierCurveTo(-l*.22,l*.16,-l*.02,l*.06,l*.05,0);c.fill();c.stroke();for(let j=-3;j<=3;j++){c.beginPath();c.moveTo(0,0);c.lineTo(-l*.23,j*l*.035);c.stroke();}c.restore();
+    c.save();c.translate(tail.x,tail.y);c.rotate(tail.angle+Math.sin(f.phase-3)*.28);c.beginPath();c.moveTo(l*.05,0);c.bezierCurveTo(-l*.02,-l*.06,-l*.22,-l*.16,-l*.28,-l*.12);c.quadraticCurveTo(-l*.2,0,-l*.14,0);c.quadraticCurveTo(-l*.2,0,-l*.28,l*.12);c.bezierCurveTo(-l*.22,l*.16,-l*.02,l*.06,l*.05,0);c.fill();c.stroke();for(let j=-3;j<=3;j++){c.beginPath();c.moveTo(0,0);c.lineTo(-l*.23,j*l*.035);c.stroke();}c.restore();
     c.save();this.fishPath(c,f);c.clip();
     // Warp a scale-textured skin in narrow slices, rather than rotate a rigid sprite.
     const tex=this.skins[f.species],slices=40;for(let i=0;i<slices;i++){const p=fishPose(f,(i+.5)/slices);c.save();c.translate(p.x,p.y);c.rotate(p.angle);c.drawImage(tex,255-(i+1)*256/slices,0,256/slices+1,96,-l/slices*.5-.5,-l*.14,l/slices+1,l*.28);c.restore();}

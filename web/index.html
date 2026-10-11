@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>禅意桌面 · Zen desktop</title><link rel="stylesheet" href="style.css"></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>禅意桌面 · Zen desktop</title><link rel="icon" type="image/png" href="icon.png"><link rel="stylesheet" href="style.css"></head>
 <body><main id="pond" aria-label="赏鱼壁纸，单击投喂，双击切换桌面图标"><canvas id="clouds" hidden aria-hidden="true"></canvas><canvas id="water"></canvas><canvas id="fish"></canvas><canvas id="rain-impact" aria-hidden="true"></canvas></main>
 <aside id="calendar" class="calendar glass" aria-label="日历"><div id="solar"></div><div id="lunar"></div><div class="countdown" id="countdown"></div></aside>
 <button class="settings-button glass" id="settings-button" aria-label="打开设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="9" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="7" cy="18" r="2"/></svg></button>
@@ -15,7 +15,7 @@
 <p class="cloud-note" id="cloud-clock-note">跟随本机时间，约 06:00 日出、18:00 日落。</p>
 <div id="cloud-fixed-options" hidden><label for="cloud-time">光照时间 <output id="cloud-time-value"></output></label><input id="cloud-time" type="time" step="60" value="06:20">
 <div class="cloud-presets" role="group" aria-label="云海时刻预览"><button data-cloud-time="06:20">朝霞</button><button data-cloud-time="12:00">日中</button><button data-cloud-time="18:10">日落</button><button data-cloud-time="23:00">夜幕</button></div></div>
-<p class="cloud-note">云始终缓缓流动，固定时刻只锁定光照。</p></div></div><div id="software-options" role="tabpanel" aria-labelledby="software-tab" hidden><div class="section-label">桌面</div><p class="compatibility-note">若壁纸未显示，请检查桌面整理软件是否覆盖了壁纸层，例如腾讯桌面整理。</p><label class="toggle-row">显示日历<input id="show-calendar" type="checkbox" role="switch"></label>
+<p class="cloud-note" id="cloud-source-note">云持续流动，固定时刻只锁定光照。昼夜变化采用平滑调色。</p></div></div><div id="software-options" role="tabpanel" aria-labelledby="software-tab" hidden><div class="section-label">启动</div><label class="toggle-row">开机自启动<input id="autostart" type="checkbox" role="switch" disabled></label><p class="cloud-note" id="startup-note">请在 Windows 程序中设置。</p><div class="section-label">桌面</div><p class="compatibility-note">若壁纸未显示，请检查桌面整理软件是否覆盖了壁纸层，例如腾讯桌面整理。</p><label class="toggle-row">显示日历<input id="show-calendar" type="checkbox" role="switch"></label>
 <label class="toggle-row">隐藏桌面图标<input id="icons" type="checkbox" role="switch"></label>
 <div class="section-label">声音</div><label class="toggle-row">开启声音<input id="sound" type="checkbox" role="switch"></label>
 <label for="volume">音乐音量 <output id="volume-value"></output></label><input id="volume" type="range" min="0" max="100">

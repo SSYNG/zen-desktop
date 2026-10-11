@@ -1,0 +1,21 @@
+{
+  "resolution": [
+    2560,
+    1440
+  ],
+  "fps": 24,
+  "frames": 83,
+  "duration": 3.4583333333333335,
+  "sourceTrim": [
+    3,
+    14
+  ],
+  "flowOverlapFrames": 24,
+  "seamMotion": 2.1243491172790527,
+  "typicalMotion": 2.3288493156433105,
+  "minMotion": 1.6700873374938965,
+  "seconds": 223.7457359000109,
+  "bytes": 4702896,
+  "modelSHA256": "49fafd45f8fd7aa8d31ab2a22d14d91b536c34494a5cfe31eb5d89c2fa266abb",
+  "sourceSHA256": "39a5c48da1faf9c69e663790b080e849e9304085b3fed3b96b7879bf3fefb09a"
+}

@@ -13,7 +13,9 @@ export class PondSimulation {
   }
   createFish(initial) {
     const r=this.random,heading=r()*Math.PI*2;
-    const f={x:r()*this.width,y:r()*this.height,angle:heading,wander:heading,speed:16+r()*13,length:62+r()*29,phase:r()*Math.PI*2,turn:0,curvature:0,kickAge:-1,kickDirection:1,kickBend:0,kickCooldown:1+r()*5,agility:.75+r()*.5,dartAge:-1,nextDart:6+r()*40,dartTurn:0,dartRipple:false,burst:0,species:0,seed:r()*100,lifecycle:initial?'active':'entering',feedingKick:false,bodyBow:0};
+    const f={x:r()*this.width,y:r()*this.height,angle:heading,wander:heading,speed:16+r()*13,length:62+r()*29,phase:r()*Math.PI*2,turn:0,curvature:0,agility:.75+r()*.5,dartAge:-1,nextDart:6+r()*40,dartTurn:0,dartRipple:false,burst:0,species:0,seed:r()*100,lifecycle:initial?'active':'entering'};
+    // Individual habits persist; each encounter adds a little variation of its own.
+    f.reaction=.045+r()*.17;f.tailTempo=.86+r()*.28;
     if(!initial){
       const edge=Math.floor(r()*4),padding=f.length*1.15;
       f.x=edge===0?-padding:edge===1?this.width+padding:this.width*(.15+r()*.7);
@@ -53,6 +55,9 @@ export class PondSimulation {
       let target=null,dist=270;
       if(!travelling)for(const food of this.food){const d=Math.hypot(food.x-f.x,food.y-f.y);if(d<dist){target=food;dist=d;}}
       const closeFood=target&&dist<f.length*1.8;
+      if(f.reactionTarget!==target){f.reactionTarget=target;f.reactionLeft=target?f.reaction*(.7+this.random()*.6):0;}
+      if(target)f.reactionLeft=Math.max(0,f.reactionLeft-dt);
+      const reacting=target&&f.reactionLeft>0;
       f.nextDart-=dt;
       if(!travelling&&!target&&f.dartAge<0&&f.nextDart<=0){
         if(f.x>130&&f.x<w-130&&f.y>130&&f.y<h-130){f.dartAge=0;f.dartTurn=(this.random()<.5?-1:1)*(1.15+this.random()*.8);f.dartRipple=false;this.ripple(f.x,f.y,.13,.65);}
@@ -60,54 +65,36 @@ export class PondSimulation {
       }
       let dart=0;
       if(f.dartAge>=0){f.dartAge+=dt;const a=f.dartAge;dart=a<.2?Math.sin(a/.2*Math.PI/2):Math.exp(-(a-.2)*2.7);
-        if(a>.25&&!f.dartRipple&&!target){f.wander=f.angle+f.dartTurn;goal=f.wander;f.kickCooldown=0;f.dartRipple=true;this.ripple(f.x,f.y,.17,.7);}
+        if(a>.25&&!f.dartRipple&&!target){f.wander=f.angle+f.dartTurn;goal=f.wander;f.dartRipple=true;this.ripple(f.x,f.y,.17,.7);}
         if(a>1.35)f.dartAge=-1;
       }
       if(travelling){const point=f.lifecycle==='exiting'?f.exit:f.entry;goal=Math.atan2(point.y-f.y,point.x-f.x);}
-      else if(target){goal=Math.atan2(target.y-f.y,target.x-f.x);f.burst=Math.min(1,f.burst+dt*1.4);}
+      else if(target){goal=reacting?f.angle:Math.atan2(target.y-f.y,target.x-f.x);if(!reacting)f.burst=Math.min(1,f.burst+dt*1.4);}
       else {f.burst=Math.max(0,f.burst-dt*.22);const margin=105;let bx=0,by=0;if(f.x<margin)bx=(margin-f.x)/margin;if(f.x>w-margin)bx=-(f.x-w+margin)/margin;if(f.y<margin)by=(margin-f.y)/margin;if(f.y>h-margin)by=-(f.y-h+margin)/margin;if(bx||by){goal=Math.atan2(by,bx);f.wander=goal;}}
       // Close feeding prioritises lining up the mouth, rather than circling a neighbour.
       let sx=0,sy=0;for(const other of this.fish){if(other===f||other.lifecycle==='exiting')continue;const dx=f.x-other.x,dy=f.y-other.y,d=Math.hypot(dx,dy);if(d>0&&d<45){sx+=dx/d*(1-d/45);sy+=dy/d*(1-d/45);}}
       const separation=travelling?0:closeFood ? .06 : .55;
       if(sx||sy)goal=Math.atan2(Math.sin(goal)+sy*separation,Math.cos(goal)+sx*separation);
-      const delta=angleDelta(f.angle,goal);f.kickCooldown-=dt;
-      // A close, lateral pellet triggers a stronger C-start immediately, even after an idle kick.
-      const feedingTurn=closeFood&&Math.abs(delta)>.65;
-      if(f.kickAge<0&&(feedingTurn?f.feedTurnTarget!==target||f.kickCooldown<=0:f.kickCooldown<=0&&Math.abs(delta)>.9)){
-        f.kickAge=0;f.kickDirection=Math.sign(delta);f.feedingKick=!!feedingTurn;f.kickRipple=false;f.feedTurnTarget=feedingTurn?target:null;f.kickCooldown=feedingTurn?1.1:3+this.random()*5;
-      }
-      let impulse=0,bow=0;f.kickBend=0;
-      const preload=f.feedingKick ? .075 : .18,release=f.feedingKick ? .16 : .24;
-      if(f.kickAge>=0){f.kickAge+=dt*f.agility;const a=f.kickAge;
-        if(a<preload){f.kickBend=f.kickDirection*Math.sin(a/preload*Math.PI/2);if(f.feedingKick)bow=f.kickBend*4.7;}
-        else if(a<preload+release){const t=(a-preload)/release;f.kickBend=f.kickDirection*Math.cos(t*Math.PI);impulse=Math.sin(t*Math.PI);if(f.feedingKick)bow=f.kickDirection*4.7*Math.cos(t*Math.PI/2);
-          if(f.feedingKick&&!f.kickRipple){f.kickRipple=true;this.ripple(f.x-Math.cos(f.angle)*f.length*.3,f.y-Math.sin(f.angle)*f.length*.3,.6,1.65);}
-        }
-        else if(a<preload+release+.3){const t=a-preload-release;f.kickBend=-f.kickDirection*.65*Math.exp(-t*8)*Math.cos(t*12);if(f.feedingKick)bow=-f.kickDirection*.28*Math.sin(t/.3*Math.PI)*Math.exp(-t*8); }
-        else {f.kickAge=-1;f.feedingKick=false;}
-      }
-      // Coil and turn overlap: no held pose between loading and tail release.
-      f.bodyBow+=(bow-f.bodyBow)*(1-Math.exp(-dt*90));
-      const loading=f.feedingKick&&f.kickAge>=0&&f.kickAge<preload;
-      const maxTurn=(loading ? (1.4+Math.abs(f.bodyBow)*.65)*f.agility : (closeFood?2.8:target?1.1:.45)*f.agility+impulse*(f.feedingKick?7:3.7))*dt;
+      const delta=angleDelta(f.angle,goal);
+      const maxTurn=(closeFood?3.2:target?1.1:dart>.1?1.4:.45)*f.agility*dt;
       const turn=Math.max(-maxTurn,Math.min(maxTurn,delta));f.angle+=turn;f.turn+=(turn/dt-f.turn)*(1-Math.exp(-dt*7));
-      const bendLimit=f.feedingKick ? .46 : .29;
-      const desiredCurve=Math.max(-bendLimit,Math.min(bendLimit,f.turn*.065+f.kickBend*(f.feedingKick ? .36 : .23)));f.curvature+=(desiredCurve-f.curvature)*(1-Math.exp(-dt*19));
+      // Gentle travelling bend only: no coiling, preload, recoil or launch impulse.
+      const desiredCurve=Math.max(-.22,Math.min(.22,f.turn*.055));f.curvature+=(desiredCurve-f.curvature)*(1-Math.exp(-dt*12));
       const variation=1+Math.sin(this.time*.31+f.seed)*.14+Math.sin(this.time*.13+f.seed*2)*.06;
       const activity=Math.max(f.burst*3.8,dart*3.5);
-      let velocity=f.speed*this.config.speed*variation*(1+activity+impulse*.5);
+      let velocity=f.speed*this.config.speed*variation*(1+activity);
       if(travelling)velocity=f.speed*this.config.speed*1.8*Math.max(.15,Math.cos(angleDelta(f.angle,goal)));
       if(closeFood){
-        const alignment=Math.max(0,Math.cos(angleDelta(f.angle,goal)));
+        const alignment=Math.max(0,Math.cos(angleDelta(f.angle,Math.atan2(target.y-f.y,target.x-f.x))));
         // Brake before turning. Small backward sculling lets a pellet on the body reach the nose.
         const approach=Math.max(-.25,Math.min(1,(dist-f.length*.45)/(f.length*.65)));
         velocity*=alignment*alignment*approach;
-        if(loading)velocity*=.3;
+        if(reacting)velocity*=.15;
       }
       f.velocity=velocity;f.x+=Math.cos(f.angle)*velocity*dt;f.y+=Math.sin(f.angle)*velocity*dt;
       if(!travelling){f.x=Math.max(4,Math.min(w-4,f.x));f.y=Math.max(4,Math.min(h-4,f.y));}
       else if(f.lifecycle==='entering'&&Math.hypot(f.entry.x-f.x,f.entry.y-f.y)<f.length*.45){f.lifecycle='active';f.wander=f.angle;f.entry=null;}
-      f.phase+=dt*(3.1+f.burst*3+dart*5+impulse*5)*this.config.speed;
+      f.phase+=dt*(3.1+f.burst*3+dart*5)*this.config.speed*f.tailTempo;
       const mouthAfter=fishMouth(f),mouthRadius=2.6+f.length*.025;
       if(target&&segmentDistance(target,mouthBefore,mouthAfter)<mouthRadius){const i=this.food.indexOf(target);if(i>=0){this.food.splice(i,1);this.eaten++;this.ripple(target.x,target.y);for(const other of this.fish)if(other.lifecycle==='active'&&Math.hypot(other.x-target.x,other.y-target.y)<270)other.wander=Math.atan2(other.y-target.y,other.x-target.x)+(this.random()-.5)*.8;}}
     }
